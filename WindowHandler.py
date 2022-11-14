@@ -29,17 +29,39 @@ def compare_jsons(json1: dict, json2: dict) -> dict:
     return answer
 
 
+def fill_json(json_to_fill: dict, json_from_fill=None) -> dict:
+    """"""
+
+    if json_from_fill is None:
+        with open("data/root_json_to_fill.json", "r") as file:
+            json_from_fill = json.load(file)
+
+    answer = {}
+    for k in json_to_fill.keys():
+        if k in json_from_fill:
+            answer[k] = json_from_fill[k]
+        else:
+            pass
+
+    return answer
+
+
 class WindowHandler:
     window = Tk()
+
+    label_1: Label
+    label_2: Label
+
     back_to_main_btn: Button
     choose_mode_btn: Button
     start_fill_json_btn: Button
     compare_btn: Button
 
     input_box: scrolledtext.ScrolledText
+    input_box_2: scrolledtext.ScrolledText
     compare_input_1: scrolledtext.ScrolledText
     compare_input_2: scrolledtext.ScrolledText
-    answer_scr: scrolledtext.ScrolledText
+    answer_scr: scrolledtext.ScrolledText = None
 
     mods_selector: Combobox
 
@@ -80,12 +102,39 @@ class WindowHandler:
             widget.grid_remove()
 
     def create_fill_json_widgets(self):
+
+        # Create answer box
+        self.answer_scr = scrolledtext.ScrolledText(
+            self.window,
+            width=40,
+            height=10
+        )
+
+        # Create two labels
+        self.label_1 = Label(
+            self.window,
+            text='JSON FROM FILL'
+        )
+
+        self.label_2 = Label(
+            self.window,
+            text='JSON TO FILL'
+        )
+
+        # Create two input boxes
         self.input_box = scrolledtext.ScrolledText(
             self.window,
             width=40,
             height=10
         )
 
+        self.input_box_2 = scrolledtext.ScrolledText(
+            self.window,
+            width=40,
+            height=10
+        )
+
+        # Create two buttons
         self.start_fill_json_btn = Button(
             self.window,
             text='Fill JSON',
@@ -99,16 +148,26 @@ class WindowHandler:
         )
 
     def set_fill_json_widgets(self):
-        self.input_box.grid(column=0, row=self.last_row)
+
+        # Set two labels
+        self.label_1.grid(column=1, row=self.last_row)
+        self.label_2.grid(column=0, row=self.last_row)
         self.last_row += 1
+
+        # Set two input boxes
+        self.input_box.grid(column=0, row=self.last_row)
         self.all_active_non_start_widgets.append(self.input_box)
 
+        self.input_box_2.grid(column=1, row=self.last_row)
+        self.all_active_non_start_widgets.append(self.input_box_2)
+        self.last_row += 1
+
+        # Set two buttons
         self.start_fill_json_btn.grid(column=0, row=self.last_row)
         self.all_active_non_start_widgets.append(self.start_fill_json_btn)
 
         self.back_to_main_btn.grid(column=1, row=self.last_row)
         self.all_active_non_start_widgets.append(self.back_to_main_btn)
-
         self.last_row += 1
 
     def fill_json(self):
@@ -174,23 +233,53 @@ class WindowHandler:
         mods[choose]()
 
     def click_fill_json_btn(self):
-        pass
+
+        json1_txt = self.input_box.get('1.0', END)
+        json2_txt = self.input_box_2.get('1.0', END)
+
+        if self.answer_scr is not None:
+            self.answer_scr.grid_remove()
+        self.answer_scr = scrolledtext.ScrolledText(
+            self.window,
+            width=40,
+            height=10
+        )
+        self.answer_scr.grid(column=0, row=self.last_row)
+        self.last_row += 1
+        self.all_active_non_start_widgets.append(self.answer_scr)
+
+        try:
+            json1: dict = json.loads(json1_txt)
+            if json2_txt == '\n':
+                answer = fill_json(json1)
+            else:
+                json2: dict = json.loads(json2_txt)
+                answer = fill_json(json1, json2)
+
+            self.answer_scr.insert(INSERT, answer)
+        except json.decoder.JSONDecodeError as error:
+            self.answer_scr.insert(INSERT, f"{error}\nCheck JSON!")
+
 
     def click_compare_btn(self):
         json1_txt = self.compare_input_1.get('1.0', tkinter.END)
         json2_txt = self.compare_input_2.get('1.0', tkinter.END)
+
+        if self.answer_scr is not None:
+            self.answer_scr.grid_remove()
+
+        self.answer_scr = scrolledtext.ScrolledText(
+            self.window,
+            width=40,
+            height=10
+        )
+        self.answer_scr.grid(column=0, row=self.last_row)
+        self.last_row += 1
+        self.all_active_non_start_widgets.append(self.answer_scr)
+
         try:
             json1: dict = json.loads(json1_txt)
             json2: dict = json.loads(json2_txt)
-
-            self.answer_scr = scrolledtext.ScrolledText(
-                self.window,
-                width=40,
-                height=10
-            )
-            self.answer_scr.grid(column=0, row=self.last_row)
-            self.last_row += 1
-            self.all_active_non_start_widgets.append(self.answer_scr)
 
             answer = compare_jsons(json1, json2)
             if 'keys_not_equal' in answer:
@@ -201,8 +290,8 @@ class WindowHandler:
             else:
                 self.answer_scr.insert(INSERT, f"JSON's is equal - {answer['is_equal']}")
 
-        except json.decoder.JSONDecodeError:
-            print('Check jsons')
+        except json.decoder.JSONDecodeError as error:
+            self.answer_scr.insert(INSERT, f"{error}\nCheck JSON!")
 
     def remove_all_active_non_start_widgets(self):
         for widget in self.all_active_non_start_widgets:
