@@ -11,8 +11,6 @@ def compare_jsons(json1: dict, json2: dict) -> dict:
     counter = 0
     answer = {}
     keys_not_compare = []
-    print(json1)
-    print(json2)
 
     for k, v in json1.items():
         if k in json2:
@@ -256,7 +254,7 @@ class WindowHandler:
                 json2: dict = json.loads(json2_txt)
                 answer = fill_json(json1, json2)
 
-            self.answer_scr.insert(INSERT, answer)
+            self.answer_scr.insert(INSERT, str(answer).replace("'", '"'))
         except json.decoder.JSONDecodeError as error:
             self.answer_scr.insert(INSERT, f"{error}\nCheck JSON!")
 
