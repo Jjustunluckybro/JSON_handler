@@ -70,6 +70,7 @@ class WindowHandler:
         self.all_active_non_start_widgets = []
 
     def start(self):
+        self.window.geometry('700x400')
         self.create_start_widgets()
         self.set_start_widgets()
         self.window.mainloop()
@@ -151,6 +152,8 @@ class WindowHandler:
         self.label_1.grid(column=1, row=self.last_row)
         self.label_2.grid(column=0, row=self.last_row)
         self.last_row += 1
+        self.all_active_non_start_widgets.append(self.label_1)
+        self.all_active_non_start_widgets.append(self.label_2)
 
         # Set two input boxes
         self.input_box.grid(column=0, row=self.last_row)
