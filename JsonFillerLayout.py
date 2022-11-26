@@ -12,15 +12,6 @@ class BoxesResolution(NamedTuple):
     width: int
 
 
-class Settings(NamedTuple):
-    product_type: str
-    account_number: str
-    contact_id: str
-    is_date_format: bool
-    is_format_contract: bool
-    is_format_primary_account_number: bool
-
-
 class JsonFillerLayout:
     start_button = None
     copy_button = None
@@ -38,6 +29,11 @@ class JsonFillerLayout:
             input_json_boxes_resolution: BoxesResolution,
             height_intend_btw_labels: int = 25
     ):
+        # IntVars for checkboxes
+        self.is_date_format_checkbox_intvar = IntVar()
+        self.is_format_contract_intvar = IntVar()
+        self.is_format_primary_account_number_intvar = IntVar()
+
         self.height_intend_btw_labels = height_intend_btw_labels
         self.window_resolution = window_resolution
         self.window = window
@@ -117,7 +113,7 @@ class JsonFillerLayout:
         self.product_type_combobox['value'] = (
             "Взять_из_исходного_JSON'a",
             "Кредитная карта",
-            "КВК\КН"
+            "КВК\\КН"
         )
         self.product_type_combobox.current(0)
 
@@ -147,19 +143,22 @@ class JsonFillerLayout:
         )
 
         # Create checkboxes widgets
+
         self.is_date_format_checkbox = Checkbutton(
             self.window,
-            text="Форматировать все Date&Time в Date?"
+            text="Форматировать все Date&Time в Date?",
+            variable=self.is_date_format_checkbox_intvar
         )
         self.is_format_contract_checkbox = Checkbutton(
             self.window,
-            text='Заполнять поле "PRIMARY_CONTRACT_NUMBER"'
+            text='Заполнять поле "PRIMARY_CONTRACT_NUMBER"',
+            variable=self.is_format_contract_intvar
         )
         self.is_format_primary_account_number = Checkbutton(
             self.window,
-            text='Заполнять поле "PRIMARY_ACCOUNT_NUMBER"'
+            text='Заполнять поле "PRIMARY_ACCOUNT_NUMBER"',
+            variable=self.is_format_primary_account_number_intvar
         )
-
 
     def __set_all_widgets(self):
 
@@ -240,17 +239,13 @@ class JsonFillerLayout:
 
     def __press_start(self):
 
-        self.read_settings()
-        # result: str = filler(
-        #     to_fill_str=self.input_json_box_json_to_fill.get('1.0', END),
-        #     from_fill_str=self.input_json_box_json_from_fill.get('1.0', END),
-        #     product_type=self,
-        #     is_fill_primary_account_number=True,
-        #     is_fill_primary_contract_number=True,
-        #     is_format_dt=True
-        # )
-        #
-        self.__set_new_output_message('some result')
+        settings = self.read_settings()
+        result: str = filler(
+            to_fill_str=self.input_json_box_json_to_fill.get('1.0', END),
+            from_fill_str=self.input_json_box_json_from_fill.get('1.0', END),
+            settings=settings
+        )
+        self.__set_new_output_message(result)
 
     # Button Press
     def __press_copy(self):
@@ -331,11 +326,17 @@ class JsonFillerLayout:
             error_msg = "Некорректные JSON'ы"
             self.__set_new_output_message(error_msg)
 
-    def read_settings(self) -> Type[Settings]:
-        settings = Settings
-        settings.product_type = self.product_type_combobox.get()
-        settings.account_number = self.input_account_number.get()
-        settings.contact_id = self.input_contact_id.get()
-        settings.is_date_format = bool(self.is_date_format_checkbox.getboolean())
-        print(settings.is_date_format)
+    def read_settings(self) -> Settings:
+
+        settings = Settings(
+            product_type=self.product_type_combobox.get(),
+            account_number=self.input_account_number.get(),
+            contact_id=self.input_contact_id.get(),
+            is_date_format=bool(self.is_date_format_checkbox_intvar.get()),
+            is_format_contract=bool(self.is_format_contract_intvar),
+            is_format_primary_account_number=bool(
+                self.is_format_primary_account_number_intvar
+            )
+        )
+
         return settings
