@@ -1,8 +1,9 @@
 {
-  "x": 123,
-  "y": "123",
-  "z": {
-    "q": "qqq",
-    "w": "www"
-  }
+  "ACCOUNT_NUMBER": "123456789",
+  "PRODUCT_TYPE": "Kvk",
+  "DEBTOR_NAME": "Иван",
+  "TIME": "2022-06-17T00:00:00",
+  "CONTACT_ID": "5-ZHJADQSD",
+  "IS_TRANING": true,
+  "PRIMRY_CONTRACT_NUMBER": null
 }
