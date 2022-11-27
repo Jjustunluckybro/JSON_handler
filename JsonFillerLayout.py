@@ -1,7 +1,6 @@
 from tkinter import *
 from tkinter import scrolledtext
 from tkinter.ttk import Combobox
-from typing import NamedTuple
 from JsonHandlers import *
 
 import pyperclip
@@ -118,11 +117,11 @@ class JsonFillerLayout:
         self.product_type_combobox.current(0)
 
         self.input_account_number = Combobox(self.window)
-        self.input_account_number['value'] = ("Взять_из_исходного_JSON'a")
+        self.input_account_number['value'] = "Взять_из_исходного_JSON'a"
         self.input_account_number.current(0)
 
         self.input_contact_id = Combobox(self.window)
-        self.input_contact_id['value'] = ("Взять_из_исходного_JSON'a")
+        self.input_contact_id['value'] = "Взять_из_исходного_JSON'a"
         self.input_contact_id.current(0)
 
         # Create input and output box window widgets
@@ -151,12 +150,12 @@ class JsonFillerLayout:
         )
         self.is_format_contract_checkbox = Checkbutton(
             self.window,
-            text='Заполнять поле "PRIMARY_CONTRACT_NUMBER"',
+            text='Заполнить "PRIMARY_CONTRACT_NUMBER" кастомным\n значением "ACCOUNT_NUMBER"',
             variable=self.is_format_contract_intvar
         )
         self.is_format_primary_account_number = Checkbutton(
             self.window,
-            text='Заполнять поле "PRIMARY_ACCOUNT_NUMBER"',
+            text='Заполнить "PRIMARY_ACCOUNT_NUMBER" кастомным\n значением "ACCOUNT_NUMBER"',
             variable=self.is_format_primary_account_number_intvar
         )
 
@@ -204,10 +203,10 @@ class JsonFillerLayout:
             y=self.save_account_number_button.place_info()['y']
         )
         self.is_format_contract_checkbox.place(x=50, y=self.__calc_height_position())
-        self.is_format_primary_account_number.place(x=50, y=self.__calc_height_position())
+        self.is_format_primary_account_number.place(x=50, y=self.__calc_height_position(10))
 
         # Set Contact id widgets
-        self.label_contact_id.place(x=50, y=self.__calc_height_position(5))
+        self.label_contact_id.place(x=50, y=self.__calc_height_position(15))
 
         self.save_contact_id_button.place(x=160, y=self.__calc_height_position())
         self.clear_contact_id_button.place(
@@ -292,7 +291,7 @@ class JsonFillerLayout:
             self.input_contact_id['values'] = current_values
 
     def __press_clear_contact_id(self):
-        self.input_contact_id['values'] = ()
+        self.input_contact_id['values'] = "Взять_из_исходного_JSON'a"
 
     # Utils
     def __calc_height_position(self, custom_intend: int | None = None) -> int:
@@ -314,17 +313,17 @@ class JsonFillerLayout:
             self.__press_clear_result_json_field()
         self.output_result_json_box.insert(INSERT, message)
 
-    def __inputs_strings_to_dicts_data(self) -> Type[DictsData]:
-
-        to_fill: str = self.input_json_box_json_to_fill.get('1.0', END)
-        from_fill: str = self.input_json_box_json_from_fill.get('1.0', END)
-        try:
-            dicts = convert_string_to_dict(to_fill, from_fill)
-            print(dicts.dict1, dicts.dict2)  # TODO: Delete debug print
-            return dicts
-        except CanNotReedJsons:
-            error_msg = "Некорректные JSON'ы"
-            self.__set_new_output_message(error_msg)
+    # def __inputs_strings_to_dicts_data(self) -> Type[DictsData]:
+    #
+    #     to_fill: str = self.input_json_box_json_to_fill.get('1.0', END)
+    #     from_fill: str = self.input_json_box_json_from_fill.get('1.0', END)
+    #     try:
+    #         dicts = convert_string_to_dict(to_fill, from_fill)
+    #         print(dicts.dict1, dicts.dict2)  # TODO: Delete debug print
+    #         return dicts
+    #     except CanNotReedJsons:
+    #         error_msg = "Некорректные JSON'ы"
+    #         self.__set_new_output_message(error_msg)
 
     def read_settings(self) -> Settings:
 
@@ -333,9 +332,9 @@ class JsonFillerLayout:
             account_number=self.input_account_number.get(),
             contact_id=self.input_contact_id.get(),
             is_date_format=bool(self.is_date_format_checkbox_intvar.get()),
-            is_format_contract=bool(self.is_format_contract_intvar),
+            is_format_contract=bool(self.is_format_contract_intvar.get()),
             is_format_primary_account_number=bool(
-                self.is_format_primary_account_number_intvar
+                self.is_format_primary_account_number_intvar.get()
             )
         )
 
