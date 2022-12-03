@@ -1,25 +1,7 @@
 import json
-from typing import NamedTuple
 
-
-class DictsData(NamedTuple):
-    dict1: dict
-    dict2: dict | None
-
-
-class MappedSettings(NamedTuple):
-    is_custom_product_type: bool
-    is_custom_contact_id: bool
-    is_custom_account_number: bool
-
-
-class Settings(NamedTuple):
-    product_type: str
-    account_number: str
-    contact_id: str
-    is_date_format: bool
-    is_format_contract: bool
-    is_format_primary_account_number: bool
+from utils.DataTypes import Settings, MappedSettings
+from utils.exceptions import WowHowDidYouDoId
 
 
 def filler(
@@ -53,7 +35,7 @@ def fill_dict_from_another_dict(from_fill: dict, to_fill: dict, settings: Settin
     # Маппим настройки кастомных данных
     custom_mapped_settings = mapping_custom_settings(settings=settings)
 
-    # Переносим все старые ключи\значения, которых нет в from_fill
+    # Переносим все ключи\значения, которых нет в from_fill
     result_dict = fill_keys_not_in_from_fill(
         dict_to_fill_result=result_dict,
         to_fill=to_fill,
@@ -66,7 +48,6 @@ def fill_dict_from_another_dict(from_fill: dict, to_fill: dict, settings: Settin
         from_fill=from_fill,
         to_fill=to_fill,
         is_custom_account_number=custom_mapped_settings.is_custom_account_number,
-        is_custom_product_type=custom_mapped_settings.is_custom_product_type,
         is_custom_contact_id=custom_mapped_settings.is_custom_contact_id,
         settings=settings
     )
@@ -96,6 +77,16 @@ def fill_dict_from_another_dict(from_fill: dict, to_fill: dict, settings: Settin
         is_custom_account_number=custom_mapped_settings.is_custom_account_number,
         settings=settings
     )
+
+    # проверяем и заполняем поле product_type в зависимости от настроек
+    result_dict = check_and_fill_product_type(
+        dict_to_fill_result=result_dict,
+        settings=settings,
+        is_custom_product_type=custom_mapped_settings.is_custom_product_type
+    )
+
+    if settings.is_date_format:
+        result_dict = check_and_fix_all_dt(result_dict)
 
     return result_dict
 
@@ -134,12 +125,18 @@ def is_it_data_time(string: str) -> bool:
 
 
 def dt_to_data(dt: str) -> str:
-    """2022-06-17T00:00:00"""
+    """
+    2022-06-17T00:00:00
+    2022-11-28T08:25:47.989
+    """
     data = dt[0:10]
     return data
 
 
 def mapping_product_type(settings: Settings, is_custom_product_type: bool) -> str:
+    """
+    Возвращает значение ключа product_type в зависимости от настроек
+    """
     if is_custom_product_type:
         return settings.product_type
     elif settings.product_type == "Кредитная карта":
@@ -147,7 +144,7 @@ def mapping_product_type(settings: Settings, is_custom_product_type: bool) -> st
     elif settings.product_type == "КВК\\КН":
         return "Kvk"
     else:
-        return 'Skip'
+        return "Skip"
 
 
 def fill_values_by_keys(
@@ -155,7 +152,6 @@ def fill_values_by_keys(
         from_fill: dict,
         to_fill: dict,
         is_custom_account_number: bool,
-        is_custom_product_type: bool,
         is_custom_contact_id: bool,
         settings: Settings
 ) -> dict:
@@ -169,21 +165,6 @@ def fill_values_by_keys(
 
             elif (k == "CONTACT_ID") and is_custom_contact_id:
                 dict_to_fill_result[k] = settings.contact_id
-                continue
-
-            elif k == "PRODUCT_TYPE":
-                product_type = mapping_product_type(
-                    settings=settings,
-                    is_custom_product_type=is_custom_product_type
-                )
-                if product_type == 'Skip':
-                    dict_to_fill_result[k] = v
-                else:
-                    dict_to_fill_result[k] = product_type
-                continue
-
-            elif settings.is_date_format and is_it_data_time(v):
-                dict_to_fill_result[k] = dt_to_data(v)
                 continue
 
             else:
@@ -267,11 +248,34 @@ def check_and_fill_primary_account_number_key(
     return dict_to_fill_result
 
 
+def check_and_fill_product_type(
+        dict_to_fill_result: dict,
+        settings: Settings,
+        is_custom_product_type: bool
+) -> dict:
+
+    product_type = mapping_product_type(
+        settings=settings,
+        is_custom_product_type=is_custom_product_type
+    )
+    if product_type == "Skip":
+        return dict_to_fill_result
+    else:
+        probably_keys = ("PRODUCT_TYPE", "PRIMARY_ACCOUNT_PRODUCT_TYPE", "SECONDARY_ACCOUNT_PRODUCT_TYPE")
+
+        for key in probably_keys:
+            if key in dict_to_fill_result:
+                dict_to_fill_result[key] = product_type
+
+        return dict_to_fill_result
+
+
 def fill_keys_not_in_from_fill(
         dict_to_fill_result: dict,
         to_fill: dict,
         from_fill: dict,
 ) -> dict:
+
     for k, v in to_fill.items():
         if k not in from_fill.keys():
             dict_to_fill_result[k] = v
@@ -316,3 +320,14 @@ def mapping_custom_settings(settings: Settings) -> MappedSettings:
     )
 
     return mapped_settings
+
+
+def check_and_fix_all_dt(
+        dict_to_fill_result: dict
+) -> dict:
+
+    for key, value in dict_to_fill_result.items():
+        if is_it_data_time(value):
+            dict_to_fill_result[key] = dt_to_data(value)
+
+    return dict_to_fill_result

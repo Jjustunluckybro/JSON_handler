@@ -1,14 +1,11 @@
 from tkinter import *
 from tkinter import scrolledtext
 from tkinter.ttk import Combobox
-from JsonHandlers import *
+from Handlers.JsonHandlers import filler
+from utils.DataTypes import Settings
+from utils.DataTypes import BoxesResolution
 
 import pyperclip
-
-
-class BoxesResolution(NamedTuple):
-    height: int
-    width: int
 
 
 class JsonFillerLayout:
@@ -105,7 +102,7 @@ class JsonFillerLayout:
             text="-----------------------------------------------------------"
         )
         self.label_contact_id = Label(self.window, text="CONTACT_ID:")
-        self.label_settings = Label(self.window, text='Настройки:')
+        self.label_settings = Label(self.window, text='Настройки:(Чекбоксы работают только при кастомных значениях)*')
 
         # Create combobox widget
         self.product_type_combobox = Combobox(self.window)

@@ -1,6 +1,7 @@
 from tkinter import *
 
-from JsonFillerLayout import *
+from Window.JsonFillerLayout import JsonFillerLayout
+from utils.DataTypes import BoxesResolution
 
 
 def main():
