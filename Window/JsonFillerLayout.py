@@ -103,6 +103,7 @@ class JsonFillerLayout:
         )
         self.label_contact_id = Label(self.window, text="CONTACT_ID:")
         self.label_settings = Label(self.window, text='Настройки:(Чекбоксы работают только при кастомных значениях)*')
+        self.label_communication_type = Label(self.window, text="COMMUNICATION_TYPE:")
 
         # Create combobox widget
         self.product_type_combobox = Combobox(self.window)
@@ -120,6 +121,14 @@ class JsonFillerLayout:
         self.input_contact_id = Combobox(self.window)
         self.input_contact_id['value'] = "Взять_из_исходного_JSON'a"
         self.input_contact_id.current(0)
+
+        self.combobox_communication_type = Combobox(self.window)
+        self.combobox_communication_type['value'] = (
+            "Взять_из_исходного_JSON'a",
+            "Звонок",
+            "Чат"
+        )
+        self.combobox_communication_type.current(0)
 
         # Create input and output box window widgets
         self.input_json_box_json_to_fill = scrolledtext.ScrolledText(
@@ -211,6 +220,8 @@ class JsonFillerLayout:
             y=self.save_contact_id_button.place_info()['y']
         )
 
+        self.label_communication_type.place(x=50, y=self.__calc_height_position(5))
+
         # Set combobox widget
         self.product_type_combobox.place(
             width=200,
@@ -226,6 +237,11 @@ class JsonFillerLayout:
             width=220,
             x=130,
             y=self.label_contact_id.place_info()['y']
+        )
+        self.combobox_communication_type.place(
+            width=170,
+            x=195,
+            y=self.label_communication_type.place_info()['y']
         )
 
         self.divider_label.place(x=50, y=self.__calc_height_position())
@@ -328,6 +344,7 @@ class JsonFillerLayout:
             product_type=self.product_type_combobox.get(),
             account_number=self.input_account_number.get(),
             contact_id=self.input_contact_id.get(),
+            communication_type=self.combobox_communication_type.get(),
             is_date_format=bool(self.is_date_format_checkbox_intvar.get()),
             is_format_contract=bool(self.is_format_contract_intvar.get()),
             is_format_primary_account_number=bool(

@@ -1,7 +1,6 @@
 import json
 
 from utils.DataTypes import Settings, MappedSettings
-from utils.exceptions import WowHowDidYouDoId
 
 
 def filler(
@@ -52,6 +51,7 @@ def fill_dict_from_another_dict(from_fill: dict, to_fill: dict, settings: Settin
         settings=settings
     )
 
+    # Проверяем и переносим значение account_number
     result_dict = check_and_fill_primary_account_number_key(
         dict_to_fill_result=result_dict,
         to_fill=to_fill,
@@ -83,6 +83,12 @@ def fill_dict_from_another_dict(from_fill: dict, to_fill: dict, settings: Settin
         dict_to_fill_result=result_dict,
         settings=settings,
         is_custom_product_type=custom_mapped_settings.is_custom_product_type
+    )
+
+    # Проверяем и заполняем значение communication_type
+    result_dict = check_and_fill_communication_type(
+        dict_to_fill_result=result_dict,
+        settings=settings
     )
 
     if settings.is_date_format:
@@ -147,6 +153,19 @@ def mapping_product_type(settings: Settings, is_custom_product_type: bool) -> st
         return "Skip"
 
 
+def mapping_communication_type(settings: Settings) -> str:
+    """
+    Возвращает значение ключа COMMUNICATION_TYPE в зависимости от настроек
+    """
+
+    if settings.communication_type == "Звонок":
+        return "Call"
+    elif settings.communication_type == "Чат":
+        return "Chat"
+    else:
+        return "Skip"
+
+
 def fill_values_by_keys(
         dict_to_fill_result: dict,
         from_fill: dict,
@@ -159,11 +178,7 @@ def fill_values_by_keys(
 
         if k in to_fill:
 
-            if (k == "ACCOUNT_NUMBER") and is_custom_account_number:
-                dict_to_fill_result[k] = settings.account_number
-                continue
-
-            elif (k == "CONTACT_ID") and is_custom_contact_id:
+            if(k == "CONTACT_ID") and is_custom_contact_id:
                 dict_to_fill_result[k] = settings.contact_id
                 continue
 
@@ -231,8 +246,11 @@ def check_and_fill_primary_account_number_key(
         is_custom_account_number: bool
 ) -> dict:
 
-    if "PRIMARY_ACCOUNT_NUMBER" in to_fill.keys():
+    if "ACCOUNT_NUMBER" in dict_to_fill_result:
+        if is_custom_account_number:
+            dict_to_fill_result["ACCOUNT_NUMBER"] = settings.account_number
 
+    if "PRIMARY_ACCOUNT_NUMBER" in dict_to_fill_result:
         if settings.is_format_primary_account_number:
             if is_custom_account_number:
                 dict_to_fill_result["PRIMARY_ACCOUNT_NUMBER"] = settings.account_number
@@ -283,6 +301,20 @@ def fill_keys_not_in_from_fill(
     return dict_to_fill_result
 
 
+def check_and_fill_communication_type(
+        dict_to_fill_result: dict,
+        settings: Settings
+) -> dict:
+
+    communication_type = mapping_communication_type(settings=settings)
+
+    if "COMMUNICATION_TYPE" not in dict_to_fill_result.keys() or communication_type == "Skip":
+        return dict_to_fill_result
+    else:
+        dict_to_fill_result['COMMUNICATION_TYPE'] = communication_type
+        return dict_to_fill_result
+
+
 def correct_dict_to_export(correcting_dict: dict) -> str:
     correcting_value = str(correcting_dict)
     correcting_value = correcting_value.replace("'", '"')
@@ -316,7 +348,7 @@ def mapping_custom_settings(settings: Settings) -> MappedSettings:
     mapped_settings = MappedSettings(
         is_custom_account_number=is_custom_account_number,
         is_custom_contact_id=is_custom_contact_id,
-        is_custom_product_type=is_custom_product_type
+        is_custom_product_type=is_custom_product_type,
     )
 
     return mapped_settings
